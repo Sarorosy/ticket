@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "../components/header";
+import Header from "../components/Header";
 import { Facebook, Instagram, Twitter } from "lucide-react";
 
 export default function Layout() {
