@@ -2,7 +2,7 @@ import { useAuth } from "../utils/idb.jsx";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import CreateTicket from "./CreateTicket";
-import { LogOut, CircleUserRound, Bell, Ticket } from "lucide-react";
+import { LogOut, CircleUserRound, Bell, Ticket, Users2 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 
 export default function Header() {
@@ -48,15 +48,22 @@ export default function Header() {
         {user ? (
           <div className="flex items-center space-x-4 text-sm">
             <CreateTicket user={user} />
+            {user?.role === "admin" && (
+            <button
+            onClick={()=>{navigate("/users")}}
+            className="flex items-center gap-2 bg-blue-600 text-white p-2 rounded">
+              <Users2 size={20} /> Users
+            </button>
+            )}
             <div className="flex items-center" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 data-tooltip-id="my-tooltip"
-                data-tooltip-content={user.email || user.email_id}
+                data-tooltip-content={user.email || user.email_id || user.st_email}
                 className="flex items-center px-2 py-2 rounded-md bg-gray-100 text-black  transition mr-3"
               >
                 <CircleUserRound className="mr-1 pt-1" size={20} />
-                <span className=" f-13">{user.name || user.admin_name}</span>
+                <span className=" f-13">{user.name || user.admin_name || user.st_name}</span>
               </button>
               <button
                 onClick={logout}

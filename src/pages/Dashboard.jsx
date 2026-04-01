@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { API_BASE_URL, BASE_URL } from '../utils/constants'
+import { API_BASE_URL } from '../utils/constants'
 import { useAuth } from '../utils/idb'
+import TicketDetails from '../components/TicketDetails'
 
 function Dashboard() {
   const { user, loading } = useAuth()
@@ -21,7 +22,7 @@ function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user?.id ?? null,
+          userId: (user?.id || user?.st_id) ?? null,
           role: user?.role ?? null,
         }),
       })
@@ -55,6 +56,16 @@ function Dashboard() {
     if (status === 'open') return 'bg-green-100 text-green-700'
     if (status === 'closed') return 'bg-gray-200 text-gray-700'
     return 'bg-yellow-100 text-yellow-700'
+  }
+
+  const formatDate = (d) => {
+    if (!d) return '—'
+    try {
+      // support 'YYYY-MM-DD HH:mm:ss' by converting space to T
+      return new Date(String(d).replace(' ', 'T')).toLocaleString()
+    } catch (e) {
+      return d
+    }
   }
 
   const openDetails = async (ticketId) => {
@@ -244,132 +255,14 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Offcanvas details panel */}
-      {offcanvasOpen && (
-        <div className="fixed inset-0 z-10 flex">
-          <div className="absolute inset-0 bg-black/40" onClick={closeDetails} />
-          <div className="z-50 ml-auto w-full md:w-1/3 bg-white h-full shadow-lg overflow-auto p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Ticket details</h2>
-              <button onClick={closeDetails} className="text-gray-500 hover:text-gray-800">Close</button>
-            </div>
-
-            {detailLoading && <div className="text-gray-500">Loading details...</div>}
-            {detailError && <div className="bg-red-100 text-red-600 px-3 py-2 rounded">{detailError}</div>}
-
-            {detail && (
-              <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-6">
-
-                {/* Header */}
-                <div className="flex items-start justify-between flex-wrap gap-3">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      {detail.ticket_id}
-                    </h2>
-                    <p className="text-sm text-gray-500 capitalize">{detail.type} ticket</p>
-                  </div>
-
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${detail.status === 'open'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-200 text-gray-700'
-                    }`}>
-                    {detail.status}
-                  </span>
-                </div>
-
-                {/* Grid Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                  {/* Left */}
-                  <div className="space-y-4">
-
-                    <div>
-                      <p className="text-xs text-gray-400 mb-1">Created By</p>
-                      <p className="text-sm font-medium text-gray-800">
-                        {detail.created_name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {detail.created_email}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-400 mb-1">Assigned To</p>
-                      <p className="text-sm font-medium text-gray-800">
-                        {detail.assigned_name || 'Unassigned'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {detail.assigned_email || '—'}
-                      </p>
-                    </div>
-
-                  </div>
-
-                  {/* Right */}
-                  <div className="space-y-4">
-
-                    <div>
-                      <p className="text-xs text-gray-400 mb-1">Created At</p>
-                      <p className="text-sm text-gray-800">
-                        {detail.created_at
-                          ? new Date(detail.created_at).toLocaleString()
-                          : '—'}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-400 mb-1">Role</p>
-                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                        {detail.role}
-                      </span>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div className="border-t" />
-
-                {/* Description */}
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Description</p>
-                  <div className="bg-gray-50 border rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                    {detail.description}
-                  </div>
-                </div>
-
-                {/* External Info */}
-                {detail.type === 'external' && (
-                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                    <p className="text-xs text-blue-500 mb-2 font-medium">External Details</p>
-                    <div className="text-sm text-gray-700 space-y-1">
-                      <div><strong>Student Code:</strong> {detail.student_code}</div>
-                      <div><strong>Project ID:</strong> {detail.project_id}</div>
-                      <div><strong>Milestone ID:</strong> {detail.milestone_id}</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* File Preview */}
-                {detail.file && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Attachment</p>
-                    <a
-                      href={`${BASE_URL}/public/ticket/${detail.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-black transition"
-                    >
-                      View File
-                    </a>
-                  </div>
-                )}
-
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <TicketDetails
+        offcanvasOpen={offcanvasOpen}
+        closeDetails={closeDetails}
+        detailLoading={detailLoading}
+        detailError={detailError}
+        detail={detail}
+        finalFunction={fetchTickets}
+      />
     </div>
   )
 }

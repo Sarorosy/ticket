@@ -1,23 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../utils/constants';
+import { useAuth } from '../utils/idb';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const {login} = useAuth();
 
-  const handleLogin = (e) => {
+
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/user/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Dummy credentials
-    const dummyUsername = 'user';
-    const dummyPassword = 'user123';
+      const data = await res.json();
 
-    if (username === dummyUsername && password === dummyPassword) {
-      navigate('/dashboard'); // Redirect to dashboard
-    } else {
-      setError('Invalid username or password');
+      if (!res.ok) {
+        setError(data?.message || 'Login failed');
+        return;
+      }
+      if(data.status){
+        login({ ...data.user, role: "agent" });
+        navigate('/');
+        return;
+      }else{
+        setError(data?.message || 'Login failed');
+        return;
+      }
+
+      
+    } catch (err) {
+      setError('Network error');
     }
   };
 
@@ -27,12 +48,12 @@ const Login = () => {
         <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <div className="mb-4">
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
           <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />

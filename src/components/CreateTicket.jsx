@@ -27,6 +27,8 @@ export default function CreateTicket({ user }) {
   const [milestonesError, setMilestonesError] = useState(null);
 
 
+
+
   // Fetch projects by student code from backend API
   const fetchProjectsByStudentCode = async (code) => {
     if (!code) {
@@ -109,7 +111,11 @@ export default function CreateTicket({ user }) {
         setDescription("");
         setFile(null);
         setPreview(null);
-        setStudentCode("");
+        if (user?.role === "scholar") {
+          setStudentCode(user?.student_code || "");
+        } else {
+          setStudentCode("");
+        }
         setProjects([]);
         setProjectsError(null);
         setProjectsLoading(false);
@@ -121,6 +127,18 @@ export default function CreateTicket({ user }) {
 
     return () => clearTimeout(timer);
   }, [open]);
+
+  useEffect(() => {
+    // When the create-ticket panel opens and the current user is a scholar,
+    // populate the student code and fetch their projects immediately.
+    if (open && user && user.role === "scholar") {
+      const code = user.student_code || "";
+      setStudentCode(code);
+      setScholar(user)
+      fetchProjectsByStudentCode(code);
+      setType("external")
+    }
+  }, [user, open]);
 
   useEffect(() => {
     if (!file) {
@@ -172,7 +190,7 @@ export default function CreateTicket({ user }) {
     }
 
     const ticket = {
-      createdBy: user?.id ?? "unknown",
+      createdBy: (user?.id || user?.st_id) ?? "unknown",
       role: user?.role ?? null,
       type: roleIsCrm ? type : "external",
       description,
@@ -181,7 +199,8 @@ export default function CreateTicket({ user }) {
       createdAt: new Date().toISOString(),
     };
 
-    if (roleIsCrm && type === "external") {
+
+    if ( type == "external") {
       ticket.external = {
         studentCode,
         project,
@@ -263,7 +282,7 @@ export default function CreateTicket({ user }) {
                 </button>
               </div>
 
-              {user?.role === "crm" && (
+              {(user?.role === "crm") && (
                 <div className="mb-4 flex gap-2">
                   <button
                     type="button"
@@ -293,9 +312,10 @@ export default function CreateTicket({ user }) {
                       <label className="block text-sm font-medium mb-1">Student Code <span className="text-red-500">*</span></label>
                       <input
                         required
-                        className="border p-2 w-full rounded"
+                        className={`border p-2 w-full rounded ${user?.role === "scholar" ? 'opacity-60 cursor-not-allowed' : ''}`}
                         placeholder="Enter student code"
                         value={studentCode}
+                        disabled={user?.role == "scholar"} 
                         onChange={(e) => {
                           const val = e.target.value;
                           setStudentCode(val);
@@ -432,7 +452,7 @@ export default function CreateTicket({ user }) {
               </div>
             </form>
           </div>
-      
+
         </div>
       )}
     </div>

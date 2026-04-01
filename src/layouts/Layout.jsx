@@ -16,13 +16,13 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
-       <div className="border-t border-[#092e4650] bg-white text-[#092e46] px-4 py-3 flex items-center justify-center">
+       {/* <div className="border-t border-[#092e4650] bg-white text-[#092e46] px-4 py-3 flex items-center justify-center">
         
         <p className="text-sm text-[#092e46]">
           © {new Date().getFullYear()} Dummy. All Rights Reserved.
         </p>
 
-      </div> 
+      </div>  */}
     </div>
   );
 }
